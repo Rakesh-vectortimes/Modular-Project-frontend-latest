@@ -1,0 +1,16 @@
+.layout-node {
+  box-sizing: border-box;
+
+  &.root-node {
+    position: absolute;
+  }
+
+  &:not(.root-node) {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.child-nodes {
+  margin-top: 0.5rem;
+}

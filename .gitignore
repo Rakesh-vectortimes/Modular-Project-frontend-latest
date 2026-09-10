@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build / cache
+dist/
+frontend/dist/
+tmp/
+out-tsc/
+.angular/
+frontend/.angular/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+
+# IDE / OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+
+# Env / secrets
+.env
+.env.*
+!.env.example

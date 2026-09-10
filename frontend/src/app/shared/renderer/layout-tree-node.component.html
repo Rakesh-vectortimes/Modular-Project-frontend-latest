@@ -1,0 +1,18 @@
+<div
+  class="layout-node"
+  [class.root-node]="isRoot()"
+  [style.left.px]="isRoot() ? node().position.x : null"
+  [style.top.px]="isRoot() ? node().position.y : null"
+  [style.width.px]="isRoot() ? node().position.w : null"
+  [style.minHeight.px]="isRoot() ? node().position.h : null"
+>
+  <app-component-renderer [node]="node()" [interactive]="interactive()" />
+
+  @if (node().children.length > 0) {
+    <div class="child-nodes">
+      @for (child of node().children; track child.id) {
+        <app-layout-tree-node [node]="child" [interactive]="interactive()" />
+      }
+    </div>
+  }
+</div>

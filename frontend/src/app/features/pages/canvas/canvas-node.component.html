@@ -1,0 +1,65 @@
+<div
+  class="canvas-node"
+  [class.root-node]="isRoot()"
+  [class.nested-node]="!isRoot()"
+  [class.container-node]="isContainer()"
+  [class.selected]="selection.isSelected(node().id)"
+  [class.is-dragging]="isDragging()"
+  [style.left.px]="node().position.x"
+  [style.top.px]="node().position.y"
+  [style.width.px]="node().position.w"
+  [style.height.px]="node().position.h"
+  (click)="onSelect($event)"
+  (dblclick)="startRename($event)"
+  (mousedown)="onNodeMouseDown($event)"
+>
+  <button
+    type="button"
+    class="delete-btn"
+    title="Delete component"
+    (mousedown)="$event.stopPropagation()"
+    (click)="onDelete($event)"
+  >
+    ✕
+  </button>
+
+  @if (editing()) {
+    <input
+      #renameInput
+      type="text"
+      class="node-rename"
+      [(ngModel)]="draftName"
+      (click)="$event.stopPropagation()"
+      (mousedown)="$event.stopPropagation()"
+      (dblclick)="$event.stopPropagation()"
+      (keydown.enter)="commitRename()"
+      (keydown.escape)="cancelRename()"
+      (blur)="commitRename()"
+    />
+  }
+
+  <div class="node-body">
+    <app-component-renderer [node]="node()" />
+  </div>
+
+  @if (isContainer()) {
+    <div
+      class="container-drop"
+      [id]="dropListId()"
+      cdkDropList
+      [cdkDropListData]="node().children"
+      [cdkDropListConnectedTo]="dropRegistry.ids()"
+      [cdkDropListSortingDisabled]="true"
+      (cdkDropListDropped)="onDrop($event)"
+    >
+      @for (child of node().children; track child.id) {
+        <app-canvas-node [node]="child" [parentId]="node().id" />
+      }
+      @if (node().children.length === 0) {
+        <div class="drop-hint">Drop components here — then drag to position them</div>
+      }
+    </div>
+  }
+
+  <div class="resize-handle" title="Drag to resize" (mousedown)="onResizeStart($event)"></div>
+</div>

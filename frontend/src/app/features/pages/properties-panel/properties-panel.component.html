@@ -1,0 +1,175 @@
+<div class="properties-panel">
+  <h3 class="panel-title">Properties</h3>
+
+  @if (selectedNode(); as node) {
+    <div class="node-meta">
+      <span class="node-type">{{ node.component_type }}</span>
+      <span class="node-id">#{{ node.id }}</span>
+    </div>
+
+    <div class="panel-scroll">
+      <app-node-position-panel
+        [position]="node.position"
+        (positionChange)="onPositionChange($event)"
+      />
+
+      <h4 class="section-title">Content</h4>
+      <app-dynamic-properties-panel
+        [schema]="propertySchema()"
+        [props]="node.props"
+        [variables]="availableVariables()"
+        (propsChange)="onPropsChange($event)"
+      />
+
+      <h4 class="section-title">Actions</h4>
+      <app-dynamic-properties-panel
+        [schema]="actionSchema"
+        [props]="node.props"
+        (propsChange)="onPropsChange($event)"
+      />
+
+      <h4 class="section-title">Appearance</h4>
+      <app-dynamic-properties-panel
+        [schema]="styleSchema"
+        [props]="styleProps()"
+        (propsChange)="onStyleChange($event)"
+      />
+    </div>
+  } @else if (isMultiSelect()) {
+    <div class="multi-select-summary">
+      <p>{{ selectionCount() }} components selected</p>
+      <div class="multi-select-actions">
+        <button type="button" (click)="duplicateSelection()">Duplicate</button>
+        <button type="button" class="danger" (click)="deleteSelection()">Delete</button>
+      </div>
+    </div>
+  } @else {
+    <div class="page-settings">
+      <h4 class="section-title">Page</h4>
+      <label class="page-field">
+        <span>Page name</span>
+        <input
+          type="text"
+          placeholder="login, signup, dashboard…"
+          [(ngModel)]="pageNameDraft"
+          (keydown.enter)="commitPageName()"
+          (blur)="commitPageName()"
+        />
+      </label>
+      <p class="empty-hint">
+        Click a page in <strong>Layers</strong> to switch. Double-click layer names to rename sections.
+      </p>
+
+      <h4 class="section-title">Page size</h4>
+      <label class="page-field">
+        <span>Width (px)</span>
+        <input
+          type="number"
+          min="320"
+          max="3840"
+          [ngModel]="pageSettings().viewportWidth"
+          (ngModelChange)="onViewportWidth($event)"
+        />
+      </label>
+      <label class="page-field">
+        <span>Height (px)</span>
+        <input
+          type="number"
+          min="240"
+          max="2160"
+          [ngModel]="pageSettings().viewportHeight"
+          (ngModelChange)="onViewportHeight($event)"
+        />
+      </label>
+      <div class="preset-row">
+        <button type="button" (click)="applyPreset(1280, 800)">Desktop</button>
+        <button type="button" (click)="applyPreset(768, 1024)">Tablet</button>
+        <button type="button" (click)="applyPreset(390, 844)">Mobile</button>
+      </div>
+
+      <h4 class="section-title">Page background</h4>
+      <label class="page-field">
+        <span>Background color</span>
+        <input
+          type="color"
+          [ngModel]="pageSettings().backgroundColor"
+          (ngModelChange)="onPageBackgroundColor($event)"
+        />
+      </label>
+
+      <div class="page-field">
+        <span>Background image</span>
+        <div class="bg-upload-row">
+          <label class="upload-btn" [class.disabled]="bgUploading()">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+              hidden
+              [disabled]="bgUploading()"
+              (change)="onPageBackgroundFile($event)"
+            />
+            {{ bgUploading() ? 'Uploading…' : 'Upload image' }}
+          </label>
+          @if (pageSettings().backgroundImage) {
+            <button type="button" class="clear-bg-btn" (click)="clearPageBackgroundImage()">
+              Clear
+            </button>
+          }
+        </div>
+        <input
+          type="url"
+          placeholder="Or paste image URL"
+          [ngModel]="pageSettings().backgroundImage"
+          (ngModelChange)="onPageBackgroundImage($event)"
+        />
+        @if (bgUploadError()) {
+          <em class="bg-error">{{ bgUploadError() }}</em>
+        }
+      </div>
+
+      <h4 class="section-title">Form database</h4>
+      <p class="empty-hint">
+        Design any form on the canvas. Each <strong>User Input</strong> needs a
+        <strong>Database key</strong> (any name you choose — or generate From label).
+        <strong>Save Layout</strong> auto-creates collection
+        <code>page_data_&lt;pageId&gt;</code> with those columns.
+      </p>
+      @if (dataSchemaLoading()) {
+        <p class="empty-hint">Loading schema…</p>
+      } @else {
+        @if (dataSchema(); as schema) {
+          @if (schema.collection_name) {
+            <p class="schema-meta">
+              Collection: <code>{{ schema.collection_name }}</code>
+            </p>
+            <ul class="schema-fields">
+              @for (field of schema.fields; track field.key) {
+                <li>
+                  <strong>{{ field.key }}</strong>
+                  <span>{{ field.label }} · {{ field.data_type }}</span>
+                  @if (field.required) {
+                    <em>required</em>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="empty-hint">
+              No collection yet — add User Inputs with Field Keys, then Save Layout.
+            </p>
+          }
+        }
+      }
+
+      <h4 class="section-title">Build tips</h4>
+      <ul class="tips">
+        <li>Use <strong>User Input</strong> for every form field (dropdown, date, number, file, radio…).</li>
+        <li>Set any <strong>Database key</strong> you want — no fixed list. Use <em>From label</em> to auto-name it.</li>
+        <li>Mark <strong>Required</strong> / <strong>Unique</strong> as needed.</li>
+        <li><strong>Save Layout</strong> creates/updates the page’s Mongo collection automatically.</li>
+        <li>Button <strong>Actions → Submit this form</strong> saves rows; <strong>Navigate</strong> for Cancel.</li>
+        <li>Add a <strong>Widget → Data table</strong> on another page to list submissions.</li>
+      </ul>
+    </div>
+  }
+</div>

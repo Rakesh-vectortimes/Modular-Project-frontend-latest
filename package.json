@@ -1,0 +1,12 @@
+{
+  "name": "modular-project-frontend",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix frontend start",
+    "start:publish": "npm --prefix frontend run start:publish",
+    "build": "npm --prefix frontend run build",
+    "build:publish": "npm --prefix frontend run build:publish",
+    "build:all": "npm --prefix frontend run build:all",
+    "install:all": "npm --prefix frontend install"
+  }
+}

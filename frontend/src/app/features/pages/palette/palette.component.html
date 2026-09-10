@@ -1,0 +1,35 @@
+<div class="palette">
+  <h3 class="palette-title">Components</h3>
+
+  @if (definitionStore.loading()) {
+    <p class="muted">Loading palette…</p>
+  } @else {
+    <div
+      id="palette-list"
+      class="palette-list"
+      cdkDropList
+      [cdkDropListData]="paletteStub"
+      [cdkDropListConnectedTo]="dropRegistry.ids()"
+      [cdkDropListSortingDisabled]="true"
+    >
+      @for (group of definitionStore.grouped(); track group.category) {
+        <div class="palette-group">
+          <h4 class="group-title">{{ group.category }}</h4>
+          @for (def of group.components; track def.id) {
+            <div
+              class="palette-item"
+              cdkDrag
+              [cdkDragData]="def"
+            >
+              <span class="item-icon" aria-hidden="true">{{ iconChar(def.icon) }}</span>
+              <span class="item-label">{{ def.label }}</span>
+              <div class="drag-preview" *cdkDragPreview>
+                {{ def.label }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

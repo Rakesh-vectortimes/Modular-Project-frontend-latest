@@ -1,0 +1,65 @@
+<div class="software-form-page page-shell">
+  <header class="page-header">
+    <a routerLink="/dashboard/software" class="back-link">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+      </svg>
+      Back to Software
+    </a>
+    <h1>{{ isEditMode() ? 'Edit Software' : 'New Software' }}</h1>
+    <p>
+      {{
+        isEditMode()
+          ? 'Update this software project.'
+          : 'Create a new app project to start building pages.'
+      }}
+    </p>
+  </header>
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <h2>{{ isEditMode() ? 'Software details' : 'Create software' }}</h2>
+    </div>
+
+    <div class="form-card-body">
+      @if (loading()) {
+        <p class="muted">Loading…</p>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="save()" class="software-form">
+          <label class="field">
+            <span>Name <em>*</em></span>
+            <input type="text" formControlName="name" placeholder="My CRM App" />
+            @if (form.controls.name.touched && form.controls.name.invalid) {
+              <small class="field-error">Name is required.</small>
+            }
+          </label>
+
+          <label class="field">
+            <span>Description</span>
+            <textarea
+              formControlName="description"
+              rows="4"
+              placeholder="What does this app do?"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>Category</span>
+            <input type="text" formControlName="category" placeholder="CRM, HR, Inventory..." />
+          </label>
+
+          @if (error()) {
+            <p class="form-error" role="alert">{{ error() }}</p>
+          }
+
+          <div class="form-actions">
+            <button type="button" class="secondary-btn" (click)="cancel()">Cancel</button>
+            <button type="submit" class="primary-btn" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : (isEditMode() ? 'Update Software' : 'Create Software') }}
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

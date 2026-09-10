@@ -1,0 +1,98 @@
+<section class="software-tab">
+  <div class="section-header">
+    <h2>{{ editingId() ? 'Edit Software' : 'New Software' }}</h2>
+    @if (editingId()) {
+      <button type="button" class="link-btn" (click)="startCreate()">+ New</button>
+    }
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="software-form">
+    <label class="field">
+      <span>Name <em>*</em></span>
+      <input type="text" formControlName="name" placeholder="My CRM App" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <small class="field-error">Name is required.</small>
+      }
+    </label>
+
+    <label class="field">
+      <span>Description</span>
+      <textarea
+        formControlName="description"
+        rows="3"
+        placeholder="What does this app do?"
+      ></textarea>
+    </label>
+
+    <label class="field">
+      <span>Category</span>
+      <input type="text" formControlName="category" placeholder="CRM, HR, Inventory..." />
+    </label>
+
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+
+    <button type="submit" class="primary-btn" [disabled]="saving()">
+      {{ saving() ? 'Saving…' : (editingId() ? 'Update' : 'Create') }}
+    </button>
+  </form>
+
+  <div class="list-section">
+    <h3>Your Software</h3>
+
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else if (softwareList().length === 0) {
+      <p class="muted">No software yet. Create your first app above.</p>
+    } @else {
+      <ul class="software-list">
+        @for (item of softwareList(); track item.id) {
+          <li
+            class="software-item"
+            [class.selected]="isSelected(item)"
+            (click)="selectSoftware(item)"
+            (keydown.enter)="selectSoftware(item)"
+            tabindex="0"
+            role="button"
+          >
+            <div class="item-main">
+              <span class="item-name">{{ item.name }}</span>
+              @if (item.category) {
+                <span class="item-category">{{ item.category }}</span>
+              }
+            </div>
+            <div class="item-actions">
+              <a
+                class="icon-btn link"
+                title="Open published app (public link)"
+                [href]="'/p/' + item.id"
+                target="_blank"
+                rel="noopener"
+                (click)="$event.stopPropagation()"
+              >
+                ↗
+              </a>
+              <button
+                type="button"
+                class="icon-btn"
+                title="Edit"
+                (click)="startEdit(item); $event.stopPropagation()"
+              >
+                ✎
+              </button>
+              <button
+                type="button"
+                class="icon-btn danger"
+                title="Delete"
+                (click)="deleteSoftware(item, $event)"
+              >
+                ×
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>

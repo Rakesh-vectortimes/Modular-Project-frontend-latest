@@ -1,0 +1,463 @@
+<div class="dynamic-props">
+  @for (field of schema(); track field.key) {
+    <div class="prop-field">
+      @switch (field.inputType) {
+        @case ('text') {
+          <label>
+            <span>{{ field.label }}</span>
+            <input
+              type="text"
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            />
+          </label>
+        }
+        @case ('field_key') {
+          <div class="field-key-editor">
+            <span class="list-label">{{ field.label }}</span>
+            <label>
+              <span>Database key</span>
+              <div class="field-key-row">
+                <input
+                  type="text"
+                  placeholder="auto from label — or type any key"
+                  [ngModel]="asString(getProp(field.key))"
+                  (ngModelChange)="setFieldKey(field.key, $event)"
+                />
+                <button
+                  type="button"
+                  class="from-label-btn"
+                  title="Generate key from the Label above"
+                  (click)="useLabelAsFieldKey(field.key)"
+                >
+                  From label
+                </button>
+              </div>
+            </label>
+            <p class="hint">{{ fieldKeyHint(asString(getProp(field.key))) }}</p>
+            <div class="auth-shortcuts">
+              <span class="auth-shortcuts-label">Login / signup only</span>
+              <div class="auth-chips">
+                @for (preset of authFieldKeyPresets; track preset.key) {
+                  <button
+                    type="button"
+                    class="auth-chip"
+                    [class.active]="asString(getProp(field.key)) === preset.key"
+                    (click)="applyFieldKeyPreset(field.key, preset.key)"
+                  >
+                    {{ preset.key }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+        @case ('number') {
+          <label>
+            <span>{{ field.label }}</span>
+            <input
+              type="number"
+              [ngModel]="asNumber(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event === '' || $event === null ? null : +$event)"
+            />
+          </label>
+        }
+        @case ('boolean') {
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              [ngModel]="asBoolean(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            />
+            <span>{{ field.label }}</span>
+          </label>
+        }
+        @case ('color') {
+          <label>
+            <span>{{ field.label }}</span>
+            <input
+              type="color"
+              [ngModel]="asString(getProp(field.key)) || '#000000'"
+              (ngModelChange)="setProp(field.key, $event)"
+            />
+          </label>
+        }
+        @case ('image') {
+          <div class="image-field">
+            <span class="list-label">{{ field.label }}</span>
+
+            @if (imagePreviewUrl(field.key); as preview) {
+              <div class="image-preview">
+                <img [src]="preview" [alt]="field.label" />
+              </div>
+            }
+
+            <div class="image-actions">
+              <label class="upload-btn" [class.disabled]="uploadingKey() === field.key">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                  hidden
+                  [disabled]="uploadingKey() === field.key"
+                  (change)="onImageFileSelected(field.key, $event)"
+                />
+                {{ uploadingKey() === field.key ? 'Uploading…' : 'Upload image' }}
+              </label>
+              @if (asString(getProp(field.key))) {
+                <button type="button" class="text-btn" (click)="clearImage(field.key)">
+                  Remove
+                </button>
+              }
+            </div>
+
+            <label>
+              <span>Or paste image URL</span>
+              <input
+                type="text"
+                placeholder="https://… or uploaded path"
+                [ngModel]="asString(getProp(field.key))"
+                (ngModelChange)="setProp(field.key, $event)"
+              />
+            </label>
+
+            @if (uploadError()) {
+              <p class="hint error-hint">{{ uploadError() }}</p>
+            }
+          </div>
+        }
+        @case ('select') {
+          <label>
+            <span>{{ field.label }}</span>
+            <select
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            >
+              @for (opt of field.options ?? []; track opt) {
+                <option [value]="opt">{{ selectOptionLabel(field.key, opt) }}</option>
+              }
+            </select>
+            @if (field.key === 'inputType') {
+              <p class="hint">Choose text, email, password, phone, etc. — one component for all inputs.</p>
+            }
+            @if (field.key === 'appearance') {
+              <p class="hint">Use <strong>Social login</strong> for Google, Facebook, Microsoft, etc.</p>
+            }
+          </label>
+        }
+        @case ('radio') {
+          <div class="radio-field">
+            <span class="list-label">{{ field.label }}</span>
+            <div class="radio-options">
+              @for (opt of field.options ?? []; track opt) {
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    [name]="field.key"
+                    [value]="opt"
+                    [checked]="asString(getProp(field.key)) === opt"
+                    (change)="setProp(field.key, opt)"
+                  />
+                  <span>{{ opt }}</span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+        @case ('checkbox_group') {
+          <div class="radio-field">
+            <span class="list-label">{{ field.label }}</span>
+            <div class="radio-options">
+              @for (opt of field.options ?? []; track opt) {
+                <label class="radio-option">
+                  <input
+                    type="checkbox"
+                    [checked]="isChecked(field.key, opt)"
+                    (change)="toggleMulti(field.key, opt, field.options ?? [], $event)"
+                  />
+                  <span>{{ field.key === 'providers' ? providerOptionLabel(opt) : opt }}</span>
+                </label>
+              }
+            </div>
+            @if (field.key === 'providers') {
+              <p class="hint">Pick one or more providers — each renders as its own styled button.</p>
+            }
+          </div>
+        }
+        @case ('list') {
+          <div class="list-field">
+            <span class="list-label">{{ field.label }}</span>
+            @for (item of listItems(field.key); track $index) {
+              <div class="list-row">
+                <input
+                  type="text"
+                  [ngModel]="item"
+                  (ngModelChange)="setListItem(field.key, $index, $event)"
+                />
+                <button type="button" class="icon-btn" (click)="removeListItem(field.key, $index)">×</button>
+              </div>
+            }
+            <button type="button" class="text-btn" (click)="addListItem(field.key)">+ Add item</button>
+          </div>
+        }
+        @case ('page_select') {
+          <label>
+            <span>{{ field.label }}</span>
+            <select
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            >
+              <option value="">— None —</option>
+              @for (page of pageOptions(); track page.id) {
+                <option [value]="page.id">{{ pageOptionLabel(page) }}</option>
+              }
+            </select>
+          </label>
+        }
+        @case ('action') {
+          <div class="action-field">
+            <span class="list-label">{{ field.label }}</span>
+            <label>
+              <span>What happens</span>
+              <select
+                [ngModel]="actionType(field.key)"
+                (ngModelChange)="setActionType(field.key, $event)"
+              >
+                <option value="none">Nothing</option>
+                <option value="navigate">Go to another page</option>
+                <option value="submit">Submit this form (save to page data)</option>
+                <option value="signup">Sign up (create user account)</option>
+                <option value="login">Log in</option>
+                <option value="call_api">Call an API / backend</option>
+                <option value="open_url">Open a link</option>
+                <option value="show_message">Show a message</option>
+                <option value="go_back">Go back to the previous page</option>
+              </select>
+            </label>
+
+            @if (actionType(field.key) === 'navigate') {
+              <label>
+                <span>Go to page</span>
+                <select
+                  [ngModel]="asString(actionValue(field.key)['targetPageId'])"
+                  (ngModelChange)="setActionField(field.key, 'targetPageId', $event)"
+                >
+                  <option value="">— Select a page —</option>
+                  @for (page of pageOptions(); track page.id) {
+                    <option [value]="page.id">{{ pageOptionLabel(page) }}</option>
+                  }
+                </select>
+              </label>
+              @if (pageOptions().length === 0) {
+                <p class="hint">No pages yet. Create pages from the Pages tab, then pick one here.</p>
+              } @else {
+                <p class="hint">Opens the chosen page in Preview, Run, and published app links.</p>
+              }
+            }
+
+            @if (actionType(field.key) === 'open_url') {
+              <label>
+                <span>URL</span>
+                <input
+                  type="text"
+                  placeholder="https://…"
+                  [ngModel]="asString(actionValue(field.key)['url'])"
+                  (ngModelChange)="setActionField(field.key, 'url', $event)"
+                />
+              </label>
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  [ngModel]="asBoolean(actionValue(field.key)['openInNewTab'])"
+                  (ngModelChange)="setActionField(field.key, 'openInNewTab', $event)"
+                />
+                <span>Open in new tab</span>
+              </label>
+            }
+
+            @if (actionType(field.key) === 'submit') {
+              <p class="hint">
+                Saves mapped field keys to this page's database collection (password fields are excluded).
+              </p>
+            }
+
+            @if (actionType(field.key) === 'signup') {
+              <p class="hint">
+                Creates a user account from mapped fields: <strong>email</strong>,
+                <strong>password</strong>, and <strong>name</strong> / firstName + lastName.
+                Extra keys (address, pincode, …) are stored on the user profile.
+              </p>
+              <label>
+                <span>After signup, go to page (optional)</span>
+                <select
+                  [ngModel]="asString(actionValue(field.key)['targetPageId'])"
+                  (ngModelChange)="setActionField(field.key, 'targetPageId', $event)"
+                >
+                  <option value="">— Stay on this page —</option>
+                  @for (page of pageOptions(); track page.id) {
+                    <option [value]="page.id">{{ pageOptionLabel(page) }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                <span>Success message (optional)</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Welcome! Your account was created."
+                  [ngModel]="asString(actionValue(field.key)['successMessage'])"
+                  (ngModelChange)="setActionField(field.key, 'successMessage', $event)"
+                />
+              </label>
+            }
+
+            @if (actionType(field.key) === 'login') {
+              <p class="hint">
+                Logs in using inputs mapped to <strong>email</strong> and <strong>password</strong> field keys.
+              </p>
+              <label>
+                <span>Email field key</span>
+                <input
+                  type="text"
+                  placeholder="email"
+                  [ngModel]="asString(actionValue(field.key)['emailFieldKey']) || 'email'"
+                  (ngModelChange)="setActionField(field.key, 'emailFieldKey', $event)"
+                />
+              </label>
+              <label>
+                <span>Password field key</span>
+                <input
+                  type="text"
+                  placeholder="password"
+                  [ngModel]="asString(actionValue(field.key)['passwordFieldKey']) || 'password'"
+                  (ngModelChange)="setActionField(field.key, 'passwordFieldKey', $event)"
+                />
+              </label>
+              <label>
+                <span>After login, go to page (optional)</span>
+                <select
+                  [ngModel]="asString(actionValue(field.key)['targetPageId'])"
+                  (ngModelChange)="setActionField(field.key, 'targetPageId', $event)"
+                >
+                  <option value="">— Stay on this page —</option>
+                  @for (page of pageOptions(); track page.id) {
+                    <option [value]="page.id">{{ pageOptionLabel(page) }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                <span>Success message (optional)</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Welcome back!"
+                  [ngModel]="asString(actionValue(field.key)['successMessage'])"
+                  (ngModelChange)="setActionField(field.key, 'successMessage', $event)"
+                />
+              </label>
+            }
+
+            @if (actionType(field.key) === 'call_api') {
+              <label>
+                <span>Method</span>
+                <select
+                  [ngModel]="asString(actionValue(field.key)['apiMethod']) || 'POST'"
+                  (ngModelChange)="setActionField(field.key, 'apiMethod', $event)"
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </label>
+              <label>
+                <span>Endpoint URL</span>
+                <input
+                  type="text"
+                  placeholder="https://api.example.com/…"
+                  [ngModel]="asString(actionValue(field.key)['apiUrl'])"
+                  (ngModelChange)="setActionField(field.key, 'apiUrl', $event)"
+                />
+              </label>
+              <label class="checkbox-row">
+                <input
+                  type="checkbox"
+                  [ngModel]="asBoolean(actionValue(field.key)['apiSendFormData'])"
+                  (ngModelChange)="setActionField(field.key, 'apiSendFormData', $event)"
+                />
+                <span>Send this page's field values</span>
+              </label>
+              <label>
+                <span>Success message (optional)</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Saved!"
+                  [ngModel]="asString(actionValue(field.key)['successMessage'])"
+                  (ngModelChange)="setActionField(field.key, 'successMessage', $event)"
+                />
+              </label>
+              <p class="hint">
+                Runs the backend call when clicked. GET/DELETE send fields as query
+                params; POST/PUT/PATCH send them as a JSON body.
+              </p>
+            }
+
+            @if (actionType(field.key) === 'show_message') {
+              <label>
+                <span>Message</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Thanks for signing up!"
+                  [ngModel]="asString(actionValue(field.key)['message'])"
+                  (ngModelChange)="setActionField(field.key, 'message', $event)"
+                />
+              </label>
+            }
+
+            @if (actionType(field.key) === 'go_back') {
+              <p class="hint">Returns to whichever page the user came from.</p>
+            }
+          </div>
+        }
+        @case ('formula') {
+          <div class="formula-field">
+            <span class="list-label">{{ field.label }}</span>
+            <textarea
+              rows="2"
+              class="formula-input"
+              placeholder="e.g. weight / ((height / 100) ** 2)"
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            ></textarea>
+            @if (variables().length) {
+              <div class="formula-vars">
+                <span class="formula-vars-label">Insert variable:</span>
+                @for (v of variables(); track v) {
+                  <button type="button" class="var-chip" (click)="insertVariable(field.key, v)">
+                    {{ v }}
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="hint">
+                Give input components a "Field Key" to use them as variables here.
+              </p>
+            }
+            <p class="hint">
+              Leave blank to show static content. Supports + − × ÷, ** (power),
+              and round(), min(), max(), sqrt().
+            </p>
+          </div>
+        }
+        @default {
+          <label>
+            <span>{{ field.label }}</span>
+            <input
+              type="text"
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            />
+          </label>
+        }
+      }
+    </div>
+  }
+</div>

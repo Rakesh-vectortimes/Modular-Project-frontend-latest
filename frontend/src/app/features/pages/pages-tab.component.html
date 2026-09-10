@@ -1,0 +1,85 @@
+<section class="pages-tab">
+  @if (selectedSoftware.selected(); as software) {
+    <div class="context-banner">
+      <span class="context-label">Software</span>
+      <span class="context-name">{{ software.name }}</span>
+    </div>
+
+    <div class="section-header">
+      <h2>Pages</h2>
+      <button type="button" class="link-btn" (click)="toggleCreateForm()">
+        {{ showCreateForm() ? 'Cancel' : '+ Create Page' }}
+      </button>
+    </div>
+
+    @if (showCreateForm()) {
+      <form [formGroup]="createForm" (ngSubmit)="createPage()" class="create-form">
+        <label class="field">
+          <span>Page name <em>*</em></span>
+          <input type="text" formControlName="name" placeholder="Home, Dashboard..." />
+        </label>
+
+        <label class="checkbox-field">
+          <input type="checkbox" formControlName="is_default" />
+          <span>Set as default page</span>
+        </label>
+
+        <button type="submit" class="primary-btn" [disabled]="creating()">
+          {{ creating() ? 'Creating…' : 'Create Page' }}
+        </button>
+      </form>
+    }
+
+    @if (pagesStore.error()) {
+      <p class="form-error" role="alert">{{ pagesStore.error() }}</p>
+    }
+
+    @if (pagesStore.loading()) {
+      <p class="muted">Loading pages…</p>
+    } @else if (pagesStore.pages().length === 0) {
+      <p class="muted">No pages yet. Create one to start building.</p>
+    } @else {
+      <ul class="page-list">
+        @for (page of pagesStore.pages(); track page.id) {
+          <li
+            class="page-item"
+            [class.open]="isPageOpen(page)"
+            (click)="openPage(page)"
+            (keydown.enter)="openPage(page)"
+            tabindex="0"
+            role="button"
+          >
+            <div class="page-main">
+              <span class="page-name">{{ page.name }}</span>
+              @if (page.is_default) {
+                <span class="default-badge">Default</span>
+              }
+            </div>
+            <div class="page-actions">
+              @if (!page.is_default) {
+                <button
+                  type="button"
+                  class="text-btn"
+                  title="Set as default"
+                  (click)="setDefault(page, $event)"
+                >
+                  Set default
+                </button>
+              }
+              <button
+                type="button"
+                class="icon-btn danger"
+                title="Delete page"
+                (click)="deletePage(page, $event)"
+              >
+                ×
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p class="muted blocked">Select a software project from the Software tab first.</p>
+  }
+</section>

@@ -1,0 +1,128 @@
+@if (selectedPage.selected(); as page) {
+  <div class="page-builder">
+    <header class="builder-toolbar">
+      <div class="toolbar-left">
+        <button type="button" class="back-btn" (click)="closeBuilder()">← Back</button>
+        @if (editingTitle()) {
+          <input
+            class="page-title-input"
+            type="text"
+            [ngModel]="titleDraft()"
+            (ngModelChange)="titleDraft.set($event)"
+            (keydown.enter)="commitTitleRename()"
+            (keydown.escape)="cancelTitleRename()"
+            (blur)="commitTitleRename()"
+          />
+        } @else {
+          <h2
+            class="page-title"
+            title="Click to rename page"
+            (click)="startTitleRename()"
+          >
+            {{ page.name }}
+          </h2>
+        }
+        @if (page.is_default) {
+          <span class="default-badge">Default</span>
+        }
+        @if (builderState.dirty()) {
+          <span class="dirty-badge">Unsaved</span>
+        }
+      </div>
+
+      <div class="toolbar-center">
+        <div class="panel-toggles" role="group" aria-label="Panel visibility">
+          <button
+            type="button"
+            class="panel-toggle"
+            [class.active]="layout.pagesSidebarOpen()"
+            (click)="layout.togglePagesSidebar()"
+            title="Toggle pages list sidebar"
+          >
+            <span class="toggle-icon" aria-hidden="true">☰</span>
+            Pages
+          </button>
+          <button
+            type="button"
+            class="panel-toggle"
+            [class.active]="layout.toolsPanelOpen()"
+            (click)="layout.toggleToolsPanel()"
+            title="Toggle components & layers panel"
+          >
+            <span class="toggle-icon" aria-hidden="true">▦</span>
+            Components
+          </button>
+          <button
+            type="button"
+            class="panel-toggle"
+            [class.active]="layout.propertiesPanelOpen()"
+            (click)="layout.togglePropertiesPanel()"
+            title="Toggle properties panel"
+          >
+            <span class="toggle-icon" aria-hidden="true">⚙</span>
+            Properties
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-right">
+        @if (builderState.error()) {
+          <span class="error-msg" role="alert">{{ builderState.error() }}</span>
+        }
+        @if (previewUrl(); as url) {
+          <a class="preview-btn" [href]="url" target="_blank" rel="noopener">▶ Preview</a>
+        }
+        @if (publishUrl(); as url) {
+          <a class="publish-btn" [href]="url" target="_blank" rel="noopener">↗ Publish</a>
+          <button
+            type="button"
+            class="copy-link-btn"
+            title="Copy public link"
+            (click)="copyPublishLink()"
+          >
+            {{ linkCopied() ? 'Copied!' : 'Copy link' }}
+          </button>
+        }
+        <button
+          type="button"
+          class="save-btn"
+          [disabled]="builderState.saving() || !builderState.dirty()"
+          (click)="save()"
+        >
+          {{ builderState.saving() ? 'Saving…' : 'Save Layout' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="builder-panels">
+      <aside
+        class="left-panels"
+        [class.collapsed]="!layout.toolsPanelOpen()"
+        aria-label="Components and layers"
+      >
+        @if (layout.toolsPanelOpen()) {
+          <div class="palette-panel">
+            <app-builder-palette />
+          </div>
+          <div class="layers-panel-wrap">
+            <app-builder-layers-panel />
+          </div>
+        }
+      </aside>
+
+      <section class="canvas-panel">
+        <app-builder-canvas />
+      </section>
+
+      <aside
+        class="right-panel"
+        [class.collapsed]="!layout.propertiesPanelOpen()"
+        aria-label="Properties"
+      >
+        @if (layout.propertiesPanelOpen()) {
+          <app-builder-properties-panel />
+        }
+      </aside>
+    </div>
+  </div>
+}

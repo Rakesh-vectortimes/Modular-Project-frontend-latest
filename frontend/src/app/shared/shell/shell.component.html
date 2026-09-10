@@ -1,0 +1,121 @@
+<aside class="sidebar">
+
+  <header class="sidebar-header">
+
+    <h1 class="app-title">App Builder</h1>
+
+    <p class="app-subtitle">No-code business apps</p>
+
+  </header>
+
+
+
+  <nav class="sidebar-tabs" role="tablist">
+
+    <button
+
+      type="button"
+
+      role="tab"
+
+      class="tab-btn"
+
+      [class.active]="activeTab() === 'software'"
+
+      [attr.aria-selected]="activeTab() === 'software'"
+
+      (click)="setTab('software')"
+
+    >
+
+      Software
+
+    </button>
+
+    <button
+
+      type="button"
+
+      role="tab"
+
+      class="tab-btn"
+
+      [class.active]="activeTab() === 'pages'"
+
+      [class.disabled]="!selectedSoftware.hasSelection()"
+
+      [disabled]="!selectedSoftware.hasSelection()"
+
+      [attr.aria-selected]="activeTab() === 'pages'"
+
+      (click)="setTab('pages')"
+
+    >
+
+      Pages
+
+    </button>
+
+  </nav>
+
+
+
+  <div class="sidebar-content">
+
+    @if (activeTab() === 'software') {
+
+      <app-software-tab (softwareSelected)="onSoftwareSelected()" />
+
+    } @else {
+
+      <app-pages-tab />
+
+    }
+
+  </div>
+
+</aside>
+
+
+
+<main class="main-area" [class.builder-active]="selectedPage.selected()">
+
+  @if (selectedPage.selected()) {
+
+    <app-page-builder />
+
+  } @else if (selectedSoftware.selected()) {
+    <div class="main-placeholder">
+      <h2>{{ selectedSoftware.selected()!.name }}</h2>
+
+      <p>
+
+        @if (activeTab() === 'pages') {
+
+          Select a page from the sidebar to open the builder.
+
+        } @else {
+
+          Software selected. Switch to the Pages tab to manage pages.
+
+        }
+
+      </p>
+
+    </div>
+
+  } @else {
+
+    <div class="main-placeholder empty">
+
+      <h2>Welcome</h2>
+
+      <p>Create or select a software project from the Software tab to get started.</p>
+
+    </div>
+
+  }
+
+</main>
+
+

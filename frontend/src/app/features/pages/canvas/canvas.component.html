@@ -1,0 +1,85 @@
+<div class="canvas-wrapper">
+  @if (builderState.loading()) {
+    <div class="canvas-status">Loading layout…</div>
+  } @else {
+    <div
+      #canvasSurface
+      class="canvas-surface"
+      (click)="onCanvasClick($event)"
+      (mousedown)="onCanvasMouseDown($event)"
+      (wheel)="onWheel($event)"
+    >
+      <div
+        class="canvas-content"
+        [style.transform]="'scale(' + canvasView.zoom() + ')'"
+      >
+        <!-- Figma-style page frame: what Publish shows as the full browser page -->
+        <div
+          class="page-artboard"
+          [style.left.px]="artboardOrigin.x"
+          [style.top.px]="artboardOrigin.y"
+          [style.width.px]="builderState.pageSettings().viewportWidth"
+          [style.height.px]="builderState.pageSettings().viewportHeight"
+          [style.backgroundColor]="builderState.pageSettings().backgroundColor"
+          [style.backgroundImage]="
+            builderState.pageSettings().backgroundImage
+              ? 'url(' + builderState.pageSettings().backgroundImage + ')'
+              : null
+          "
+        >
+          <div class="artboard-label">
+            Page · {{ builderState.pageSettings().viewportWidth }}×{{
+              builderState.pageSettings().viewportHeight
+            }}
+          </div>
+        </div>
+
+        <!-- Palette drop target only — root nodes are free-positioned outside this list -->
+        <div
+          class="canvas-drop-zone"
+          cdkDropList
+          id="canvas-root"
+          [cdkDropListData]="paletteDropBuffer"
+          [cdkDropListConnectedTo]="dropRegistry.ids()"
+          [cdkDropListSortingDisabled]="true"
+          (cdkDropListDropped)="onPaletteDrop($event)"
+        ></div>
+
+        <div class="canvas-nodes-layer">
+          @for (node of builderState.nodes(); track node.id) {
+            <app-canvas-node [node]="node" [parentId]="null" [isRoot]="true" />
+          }
+        </div>
+
+        @if (builderState.nodes().length === 0) {
+          <div class="canvas-empty">
+            <p>Drag components onto the page frame</p>
+          </div>
+        }
+
+        @for (line of canvasView.snapGuides().v; track line) {
+          <div class="snap-guide snap-guide-v" [style.left.px]="line"></div>
+        }
+        @for (line of canvasView.snapGuides().h; track line) {
+          <div class="snap-guide snap-guide-h" [style.top.px]="line"></div>
+        }
+      </div>
+
+      @if (marqueeRect(); as rect) {
+        <div
+          class="marquee"
+          [style.left.px]="rect.left"
+          [style.top.px]="rect.top"
+          [style.width.px]="rect.width"
+          [style.height.px]="rect.height"
+        ></div>
+      }
+    </div>
+
+    <div class="zoom-controls">
+      <button type="button" title="Zoom out" (click)="zoomOut()">−</button>
+      <button type="button" class="zoom-level" title="Reset zoom" (click)="resetZoom()">{{ zoomPercent() }}%</button>
+      <button type="button" title="Zoom in" (click)="zoomIn()">+</button>
+    </div>
+  }
+</div>

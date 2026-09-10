@@ -1,0 +1,82 @@
+<div class="dashboard" [class.sidebar-collapsed]="shellLayout.sidebarCollapsed()">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button type="button" class="menu-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        <span class="menu-icon"></span>
+      </button>
+      <h1 class="app-title">App Builder</h1>
+    </div>
+
+    <div class="topbar-right">
+      @if (auth.user(); as user) {
+        <div class="user-block">
+          <span class="user-avatar" aria-hidden="true">👤</span>
+          <span class="user-name">{{ user.name }}</span>
+          <span class="role-badge">{{ roleLabel(user.role) }}</span>
+        </div>
+      }
+      <button type="button" class="logout-btn" [disabled]="loggingOut()" (click)="logout()">
+        <span class="logout-icon" aria-hidden="true">⏻</span>
+        {{ loggingOut() ? 'Logging out…' : 'Logout' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="dashboard-body">
+    <aside class="sidebar">
+      <div class="sidebar-logo-box">
+        <div class="logo-mark">AB</div>
+        @if (!shellLayout.sidebarCollapsed()) {
+          <div class="logo-text">
+            <strong>App Builder</strong>
+            @if (auth.organization(); as org) {
+              <small>{{ org.name }}</small>
+            }
+          </div>
+        }
+      </div>
+
+      <nav class="sidebar-nav">
+        <p class="nav-section" [class.hidden]="shellLayout.sidebarCollapsed()">Build</p>
+        @for (item of mainNav; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [title]="item.label"
+          >
+            <span class="nav-icon" [class]="'icon-' + item.icon"></span>
+            @if (!shellLayout.sidebarCollapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
+          </a>
+        }
+
+        <p class="nav-section" [class.hidden]="shellLayout.sidebarCollapsed()">Settings</p>
+        @for (item of settingsNav; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [title]="item.label"
+          >
+            <span class="nav-icon" [class]="'icon-' + item.icon"></span>
+            @if (!shellLayout.sidebarCollapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
+          </a>
+        }
+      </nav>
+    </aside>
+
+    <div class="content-column">
+      <main class="main-content">
+        <router-outlet />
+      </main>
+      <footer class="app-footer">
+        <span>{{ currentYear }} © App Builder</span>
+        <span>v1.0</span>
+      </footer>
+    </div>
+  </div>
+</div>

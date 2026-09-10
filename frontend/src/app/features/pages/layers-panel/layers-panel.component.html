@@ -1,0 +1,83 @@
+<div class="layers-panel">
+  <div class="panel-header">
+    <h3 class="panel-title">Layers</h3>
+    <button type="button" class="add-page-btn" title="Add page" (click)="toggleAddPage()">+</button>
+  </div>
+
+  @if (showAddPage()) {
+    <form class="add-page-form" (ngSubmit)="createPage()">
+      <input
+        type="text"
+        placeholder="Page name…"
+        [(ngModel)]="newPageName"
+        name="newPageName"
+        [disabled]="creating()"
+      />
+      <button type="submit" [disabled]="creating() || !newPageName.trim()">
+        {{ creating() ? '…' : 'Add' }}
+      </button>
+    </form>
+  }
+
+  @if (pagesStore.loading()) {
+    <p class="empty">Loading pages…</p>
+  } @else if (pagesStore.pages().length === 0) {
+    <p class="empty">No pages yet. Click + to create one.</p>
+  } @else {
+    <div class="layers-tree">
+      @for (page of pagesStore.pages(); track page.id) {
+        <div class="page-layer" [class.active]="isActivePage(page)">
+          <div
+            class="page-layer-row"
+            [class.selected]="isActivePage(page) && selection.selectionCount() === 0"
+            (click)="selectPage(page, $event)"
+          >
+            <span class="page-chevron" aria-hidden="true">{{ isActivePage(page) ? '▾' : '▸' }}</span>
+            <span class="page-icon" aria-hidden="true">Pg</span>
+
+            @if (editingPageId() === page.id) {
+              <input
+                type="text"
+                class="page-rename"
+                [attr.data-page-rename]="page.id"
+                [(ngModel)]="pageRenameDraft"
+                [ngModelOptions]="{ standalone: true }"
+                (click)="$event.stopPropagation()"
+                (keydown.enter)="commitPageRename(page)"
+                (keydown.escape)="cancelPageRename()"
+                (blur)="commitPageRename(page)"
+              />
+            } @else {
+              <span
+                class="page-name"
+                title="Double-click to rename page"
+                (dblclick)="startPageRename(page, $event)"
+              >
+                {{ page.name }}
+              </span>
+            }
+
+            @if (page.is_default) {
+              <span class="page-badge">default</span>
+            }
+            @if (isActivePage(page) && builderState.dirty()) {
+              <span class="page-badge unsaved">•</span>
+            }
+          </div>
+
+          @if (isActivePage(page)) {
+            <div class="page-components">
+              @if (builderState.nodes().length === 0) {
+                <p class="empty nested">Drop components on the canvas</p>
+              } @else {
+                @for (node of builderState.nodes(); track node.id) {
+                  <app-layers-tree-node [node]="node" [depth]="1" />
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

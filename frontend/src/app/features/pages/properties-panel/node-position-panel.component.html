@@ -1,0 +1,37 @@
+<section class="position-section">
+  <h4 class="section-title">Position</h4>
+  <div class="position-grid">
+    <label>
+      <span>X</span>
+      <input
+        type="number"
+        [ngModel]="fieldValue('x')"
+        (ngModelChange)="setField('x', $event)"
+      />
+    </label>
+    <label>
+      <span>Y</span>
+      <input
+        type="number"
+        [ngModel]="fieldValue('y')"
+        (ngModelChange)="setField('y', $event)"
+      />
+    </label>
+    <label>
+      <span>W</span>
+      <input
+        type="number"
+        [ngModel]="fieldValue('w')"
+        (ngModelChange)="setField('w', $event)"
+      />
+    </label>
+    <label>
+      <span>H</span>
+      <input
+        type="number"
+        [ngModel]="fieldValue('h')"
+        (ngModelChange)="setField('h', $event)"
+      />
+    </label>
+  </div>
+</section>

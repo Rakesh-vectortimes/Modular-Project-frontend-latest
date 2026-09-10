@@ -1,0 +1,28 @@
+<div
+  class="layer-node"
+  [class.selected]="selection.isSelected(node().id)"
+  [style.paddingLeft.px]="depth() * 12 + 8"
+  (click)="onSelect($event)"
+>
+  <span class="layer-icon">{{ definitionStore.isContainer(node().component_type) ? '▾' : '◦' }}</span>
+  @if (editing()) {
+    <input
+      #renameInput
+      type="text"
+      class="layer-rename"
+      [(ngModel)]="draftName"
+      (click)="$event.stopPropagation()"
+      (keydown.enter)="commitRename()"
+      (keydown.escape)="cancelRename()"
+      (blur)="commitRename()"
+    />
+  } @else {
+    <span class="layer-label" title="Double-click to rename" (dblclick)="startRename($event)">{{ label() }}</span>
+    <span class="layer-type">{{ node().component_type }}</span>
+    <button type="button" class="layer-delete" title="Delete component" (click)="onDelete($event)">✕</button>
+  }
+</div>
+
+@for (child of node().children; track child.id) {
+  <app-layers-tree-node [node]="child" [depth]="depth() + 1" />
+}

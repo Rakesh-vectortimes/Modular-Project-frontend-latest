@@ -1,0 +1,21 @@
+<div class="pages-layout">
+  <aside
+    class="pages-sidebar"
+    [class.collapsed]="!layout.pagesSidebarOpen()"
+    aria-label="Pages list"
+  >
+    @if (layout.pagesSidebarOpen()) {
+      <app-pages-tab />
+    }
+  </aside>
+
+  <section class="pages-main">
+    <app-page-builder />
+    @if (!selectedPage.selected()) {
+      <div class="pages-placeholder">
+        <h2>Page Builder</h2>
+        <p>Select a software project and page from the sidebar to start building.</p>
+      </div>
+    }
+  </section>
+</div>

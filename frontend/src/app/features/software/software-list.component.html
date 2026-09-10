@@ -1,0 +1,169 @@
+<div class="software-list-page page-shell">
+  <header class="page-header">
+    <div class="page-header-text">
+      <h1>Software</h1>
+      <p>Manage software projects you build.</p>
+    </div>
+    <button type="button" class="primary-btn" (click)="goToCreate()">
+      <span class="btn-icon" aria-hidden="true">+</span>
+      Add Software
+    </button>
+  </header>
+
+  <div class="card">
+    <div class="filters">
+      <label class="filter-field search-field">
+        <span class="filter-label">Search</span>
+        <span class="input-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Zm7.78 12.72 3.5 3.5-1.42 1.42-3.5-3.5 1.42-1.42Z"
+            />
+          </svg>
+          <input
+            type="search"
+            placeholder="Search by name, category, description…"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event); applyFilters()"
+          />
+        </span>
+      </label>
+
+      <label class="filter-field">
+        <span class="filter-label">Category</span>
+        <select
+          [ngModel]="filterCategory()"
+          (ngModelChange)="filterCategory.set($event); applyFilters()"
+        >
+          <option value="">All categories</option>
+          @for (cat of categories(); track cat) {
+            <option [value]="cat">{{ cat }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="clear-btn" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12ZM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4Z"
+          />
+        </svg>
+        Clear
+      </button>
+    </div>
+
+    <div class="table-meta">
+      <label class="page-size">
+        <span>Rows per page</span>
+        <select [ngModel]="pageSize()" (ngModelChange)="onPageSizeChange($event)">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+      <span class="meta-count">Total: {{ total() }} · Page {{ page() }} of {{ totalPages() }}</span>
+      <div class="pager">
+        <button type="button" (click)="previousPage()" [disabled]="page() <= 1">Previous</button>
+        <button type="button" (click)="nextPage()" [disabled]="page() >= totalPages()">Next</button>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="banner-error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-narrow">S.No</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Updated</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            <tr>
+              <td colspan="6" class="empty-row">
+                <span class="empty-state">Loading software…</span>
+              </td>
+            </tr>
+          } @else if (pagedItems().length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">
+                <div class="empty-state">
+                  <p>No software found.</p>
+                  <button type="button" class="empty-action" (click)="goToCreate()">
+                    + Create your first app
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @else {
+            @for (item of pagedItems(); track item.id; let i = $index) {
+              <tr class="data-row" (click)="openPages(item)">
+                <td class="col-narrow">{{ serialNumber(i) }}</td>
+                <td class="name-cell">
+                  <span class="app-name">{{ item.name }}</span>
+                </td>
+                <td>
+                  @if (item.category) {
+                    <span class="category-badge">{{ item.category }}</span>
+                  } @else {
+                    <span class="muted-cell">—</span>
+                  }
+                </td>
+                <td class="desc-cell">{{ truncate(item.description) }}</td>
+                <td class="date-cell">{{ formatDate(item.updated_at) }}</td>
+                <td class="actions" (click)="$event.stopPropagation()">
+                  <button type="button" class="action-btn" title="Open pages" (click)="openPages(item)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm-1 2 5 5h-5V4zM8 13h8v2H8v-2zm0 4h5v2H8v-2z"
+                      />
+                    </svg>
+                  </button>
+                  <a
+                    class="action-btn"
+                    title="Open published app"
+                    [href]="'/p/' + item.id"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6h-2v6H5V5z"
+                      />
+                    </svg>
+                  </a>
+                  <button type="button" class="action-btn" title="Edit" (click)="goToEdit(item, $event)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn danger"
+                    title="Delete"
+                    (click)="deleteSoftware(item, $event)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12ZM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4Z"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
