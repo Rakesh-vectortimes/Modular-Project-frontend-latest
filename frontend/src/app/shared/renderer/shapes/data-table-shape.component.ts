@@ -4,14 +4,20 @@ import { Component, OnChanges, inject, input } from '@angular/core';
 import {
   PageDataFieldSpec,
   PageDataService,
-  SubmissionRead,
 } from '../../../core/services/page-data.service';
+import { EntityService } from '../../../core/services/entity.service';
 import { numberProp, RenderNode, stringProp } from '../render-node.model';
 
+interface TableRowVM {
+  id: string;
+  values: Record<string, unknown>;
+  submitted_at: string;
+}
+
 /**
- * Shows the submissions captured by another page's auto-created data
- * collection (design doc §6) — e.g. drop this on a Dashboard page to show
- * signups captured on a Login/signup page.
+ * Shows the records captured in a reusable entity (table), or the submissions
+ * of a specific page. Bind it to an entity to list a table's rows regardless of
+ * which page created them (e.g. a List page showing Customers).
  */
 @Component({
   selector: 'app-data-table-shape',
@@ -19,12 +25,12 @@ import { numberProp, RenderNode, stringProp } from '../render-node.model';
   imports: [DatePipe],
   template: `
     <div class="data-table">
-      @if (!sourcePageId()) {
-        <p class="empty">Choose a source page in Properties.</p>
+      @if (!hasSource()) {
+        <p class="empty">Choose a source entity (table) or page in Properties.</p>
       } @else if (loading) {
         <p class="empty">Loading…</p>
       } @else if (!fields.length) {
-        <p class="empty">The source page has no captured fields yet.</p>
+        <p class="empty">This table has no fields yet.</p>
       } @else {
         <table>
           <thead>
@@ -80,22 +86,52 @@ import { numberProp, RenderNode, stringProp } from '../render-node.model';
 })
 export class DataTableShapeComponent implements OnChanges {
   private readonly pageData = inject(PageDataService);
+  private readonly entityService = inject(EntityService);
 
   readonly node = input.required<RenderNode>();
   readonly interactive = input(false);
 
   protected fields: PageDataFieldSpec[] = [];
-  protected rows: SubmissionRead[] = [];
+  protected rows: TableRowVM[] = [];
   protected loading = false;
 
   ngOnChanges(): void {
-    const pageId = this.sourcePageId();
+    if (this.useEntitySource()) {
+      this.loadFromEntity(this.sourceEntityId());
+    } else {
+      this.loadFromPage(this.sourcePageId());
+    }
+  }
+
+  private loadFromEntity(entityId: string): void {
+    if (!entityId) {
+      this.fields = [];
+      this.rows = [];
+      return;
+    }
+    this.loading = true;
+    this.entityService.get(entityId).subscribe({
+      next: (entity) => (this.fields = entity.fields),
+      error: () => (this.fields = []),
+    });
+    this.entityService.listRecords(entityId, 0, this.pageSize()).subscribe({
+      next: (result) => {
+        this.rows = result.items;
+        this.loading = false;
+      },
+      error: () => {
+        this.rows = [];
+        this.loading = false;
+      },
+    });
+  }
+
+  private loadFromPage(pageId: string): void {
     if (!pageId) {
       this.fields = [];
       this.rows = [];
       return;
     }
-
     this.loading = true;
     this.pageData.getSchema(pageId).subscribe((schema) => {
       this.fields = schema.fields;
@@ -110,6 +146,26 @@ export class DataTableShapeComponent implements OnChanges {
         this.loading = false;
       },
     });
+  }
+
+  /** Prefer entity mode when a source entity is chosen or sourceType='entity'. */
+  protected useEntitySource(): boolean {
+    const sourceType = stringProp(this.node().props, 'sourceType', '');
+    if (sourceType === 'entity') {
+      return true;
+    }
+    if (sourceType === 'page') {
+      return false;
+    }
+    return !!this.sourceEntityId();
+  }
+
+  protected hasSource(): boolean {
+    return this.useEntitySource() ? !!this.sourceEntityId() : !!this.sourcePageId();
+  }
+
+  protected sourceEntityId(): string {
+    return stringProp(this.node().props, 'sourceEntityId', '');
   }
 
   protected sourcePageId(): string {

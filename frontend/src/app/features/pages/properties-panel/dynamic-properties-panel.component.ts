@@ -1,12 +1,13 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { PageRead, PropertySchemaField } from '../../../core/models';
+import { EntityRead, PageRead, PropertySchemaField } from '../../../core/models';
 import {
   AUTH_FIELD_KEYS,
   AUTH_FIELD_KEY_PRESETS,
   slugifyFieldKey,
 } from '../../../core/constants/field-key-presets';
+import { EntityService } from '../../../core/services/entity.service';
 import { SelectedSoftwareService } from '../../../core/services/selected-software.service';
 import { SoftwarePagesStoreService } from '../../../core/services/software-pages-store.service';
 import { UploadService } from '../../../core/services/upload.service';
@@ -22,6 +23,10 @@ export class DynamicPropertiesPanelComponent {
   private readonly pagesStore = inject(SoftwarePagesStoreService);
   private readonly selectedSoftware = inject(SelectedSoftwareService);
   private readonly uploadService = inject(UploadService);
+  private readonly entityService = inject(EntityService);
+
+  /** Entities (tables) in the current app — used by the `entity_select` editor. */
+  protected readonly entities = signal<EntityRead[]>([]);
 
   readonly schema = input.required<PropertySchemaField[]>();
   readonly props = input.required<Record<string, unknown>>();
@@ -41,8 +46,18 @@ export class DynamicPropertiesPanelComponent {
       const software = this.selectedSoftware.selected();
       if (software) {
         this.pagesStore.load(software.id);
+        this.entityService.list(software.id).subscribe({
+          next: (result) => this.entities.set(result.items),
+          error: () => this.entities.set([]),
+        });
       }
     });
+  }
+
+  /** ---- `entity_select` editor (Data Table's "source entity/table") ---- */
+
+  protected entityOptions(): EntityRead[] {
+    return this.entities();
   }
 
   protected getProp(key: string): unknown {

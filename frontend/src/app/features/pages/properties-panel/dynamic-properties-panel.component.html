@@ -213,6 +213,23 @@
             </select>
           </label>
         }
+        @case ('entity_select') {
+          <label>
+            <span>{{ field.label }}</span>
+            <select
+              [ngModel]="asString(getProp(field.key))"
+              (ngModelChange)="setProp(field.key, $event)"
+            >
+              <option value="">— None —</option>
+              @for (entity of entityOptions(); track entity.id) {
+                <option [value]="entity.id">{{ entity.name }}</option>
+              }
+            </select>
+            @if (entityOptions().length === 0) {
+              <em class="hint">No tables yet — add inputs to a page and Save Layout to create one.</em>
+            }
+          </label>
+        }
         @case ('action') {
           <div class="action-field">
             <span class="list-label">{{ field.label }}</span>

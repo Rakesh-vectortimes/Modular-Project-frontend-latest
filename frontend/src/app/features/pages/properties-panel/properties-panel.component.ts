@@ -41,13 +41,15 @@ export class PropertiesPanelComponent {
   protected readonly dataSchema = signal<PageDataSchemaRead | null>(null);
   protected readonly dataSchemaLoading = signal(false);
   protected pageNameDraft = '';
+  protected entityNameDraft = '';
 
   constructor() {
     effect(() => {
-      const name = this.selectedPage.selected()?.name;
-      if (name) {
-        this.pageNameDraft = name;
+      const page = this.selectedPage.selected();
+      if (page?.name) {
+        this.pageNameDraft = page.name;
       }
+      this.entityNameDraft = (page?.entity_name ?? '').toString();
     });
 
     effect(() => {
@@ -256,6 +258,31 @@ export class PropertiesPanelComponent {
       error: () => {
         this.pageNameDraft = page.name;
         alert('Failed to rename page.');
+      },
+    });
+  }
+
+  protected commitEntityName(): void {
+    const page = this.selectedPage.selected();
+    if (!page) {
+      return;
+    }
+    const trimmed = this.entityNameDraft.trim();
+    const current = (page.entity_name ?? '').toString();
+    if (trimmed === current) {
+      return;
+    }
+
+    this.pagesStore.setEntityName(page.id, trimmed).subscribe({
+      next: (updated) => {
+        this.entityNameDraft = (updated.entity_name ?? '').toString();
+        this.selectedPage.patchSelected({ entity_name: updated.entity_name ?? null });
+        // The bound table changed — refresh the shown schema.
+        this.refreshDataSchema(page.id);
+      },
+      error: () => {
+        this.entityNameDraft = current;
+        alert('Failed to update the page entity.');
       },
     });
   }

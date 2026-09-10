@@ -62,7 +62,7 @@ const DISPLAY_BY_TYPE: Record<string, string[]> = {
 };
 
 const WIDGET_BY_TYPE: Record<string, string[]> = {
-  data_table: ['widgetType', 'sourcePageId', 'title'],
+  data_table: ['widgetType', 'title', 'sourceType', 'sourceEntityId', 'sourcePageId'],
   kanban: ['widgetType', 'title'],
   navbar: ['widgetType', 'title', 'links'],
   tabs: ['widgetType', 'tabs'],

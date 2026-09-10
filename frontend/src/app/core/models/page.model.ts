@@ -3,6 +3,8 @@
 export interface PageBase {
   name: string;
   is_default: boolean;
+  /** Reusable entity (table) this page's form reads/writes. Blank ⇒ page name. */
+  entity_name?: string | null;
 }
 
 export interface PageCreate extends PageBase {
@@ -12,6 +14,7 @@ export interface PageCreate extends PageBase {
 export interface PageUpdate {
   name?: string;
   is_default?: boolean;
+  entity_name?: string | null;
 }
 
 export interface PageRead extends PageBase {
