@@ -60,6 +60,22 @@
         Click a page in <strong>Layers</strong> to switch. Double-click layer names to rename sections.
       </p>
 
+      <label class="page-field">
+        <span>Entity / table</span>
+        <input
+          type="text"
+          placeholder="e.g. Customers (blank = page name)"
+          [(ngModel)]="entityNameDraft"
+          (keydown.enter)="commitEntityName()"
+          (blur)="commitEntityName()"
+        />
+      </label>
+      <p class="empty-hint">
+        The table this page's form reads and writes. Give a <strong>Create</strong>,
+        <strong>List</strong> and <strong>Edit</strong> page the <em>same</em> entity name to
+        back them with one shared table. Leave blank to use a table named after this page.
+      </p>
+
       <h4 class="section-title">Page size</h4>
       <label class="page-field">
         <span>Width (px)</span>
@@ -131,14 +147,17 @@
       <p class="empty-hint">
         Design any form on the canvas. Each <strong>User Input</strong> needs a
         <strong>Database key</strong> (any name you choose — or generate From label).
-        <strong>Save Layout</strong> auto-creates collection
-        <code>page_data_&lt;pageId&gt;</code> with those columns.
+        <strong>Save Layout</strong> auto-creates/updates this page's
+        <strong>entity</strong> (table) with those columns.
       </p>
       @if (dataSchemaLoading()) {
         <p class="empty-hint">Loading schema…</p>
       } @else {
         @if (dataSchema(); as schema) {
           @if (schema.collection_name) {
+            <p class="schema-meta">
+              Entity: <code>{{ schema.entity_name }}</code>
+            </p>
             <p class="schema-meta">
               Collection: <code>{{ schema.collection_name }}</code>
             </p>

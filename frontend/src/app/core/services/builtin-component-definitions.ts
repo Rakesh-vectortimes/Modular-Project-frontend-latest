@@ -317,6 +317,8 @@ const WIDGET: ComponentDefinitionRead = {
   default_props: {
     widgetType: 'data_table',
     title: '',
+    sourceType: 'entity',
+    sourceEntityId: '',
     sourcePageId: '',
     pageSize: 50,
     links: ['Home', 'About'],
@@ -332,6 +334,8 @@ const WIDGET: ComponentDefinitionRead = {
       options: ['data_table', 'kanban', 'navbar', 'tabs', 'accordion', 'stepper', 'breadcrumb'],
     },
     { key: 'title', label: 'Title', inputType: 'text', options: null },
+    { key: 'sourceType', label: 'Data source', inputType: 'select', options: ['entity', 'page'] },
+    { key: 'sourceEntityId', label: 'Source Entity (table)', inputType: 'entity_select', options: null },
     { key: 'sourcePageId', label: 'Source Page', inputType: 'page_select', options: null },
     { key: 'pageSize', label: 'Rows per Page', inputType: 'number', options: null },
     { key: 'links', label: 'Links', inputType: 'list', options: null },

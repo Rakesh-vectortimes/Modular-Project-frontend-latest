@@ -17,6 +17,8 @@ export interface PageDataSchemaRead {
   page_id: string;
   collection_name: string | null;
   fields: PageDataFieldSpec[];
+  entity_id?: string | null;
+  entity_name?: string | null;
   updated_at: string | null;
 }
 

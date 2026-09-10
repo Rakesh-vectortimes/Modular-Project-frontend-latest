@@ -49,6 +49,15 @@ export class SoftwarePagesStoreService {
     );
   }
 
+  /** Bind this page's form to a reusable entity (table). Blank ⇒ page name. */
+  setEntityName(pageId: string, entityName: string): Observable<PageRead> {
+    return this.pageService.update(pageId, { entity_name: entityName || null }).pipe(
+      tap((updated) =>
+        this.pages.update((list) => list.map((p) => (p.id === pageId ? updated : p))),
+      ),
+    );
+  }
+
   setDefault(pageId: string): Observable<PageRead> {
     return this.pageService.setDefault(pageId).pipe(
       tap((updated) =>
